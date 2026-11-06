@@ -22,27 +22,32 @@ function Notes() {
   }
 
   function handleSubmit(e) {
-  e.preventDefault()
-  const title = form.title.trim()
-  const body = form.body.trim()
+    e.preventDefault()
+    const title = form.title.trim()
+    const body = form.body.trim()
 
-  if (title === '' || body === '') {
-    return
+    if (title === '' || body === '') {
+      return
+    }
+
+    const newNote = {
+      id: crypto.randomUUID(),
+      title: title,
+      body: body,
+    }
+
+    setNotes([...notes, newNote])
+
+    setForm({
+      title: '',
+      body: '',
+    })
   }
-  
-  const newNote = {
-    id: crypto.randomUUID(),
-    title: title,
-    body: body,
+
+  function handleDelete(id) {
+    setNotes(notes.filter((notes) => notes.id !== id))
   }
 
-  setNotes([...notes, newNote])
-
-  setForm({
-    title: '',
-    body: '',
-  })
-}
 
   return (
     <div className="grid min-h-screen grid-cols-[420px_1fr]">
@@ -95,6 +100,7 @@ function Notes() {
                 />
                 <button
                   type="button"
+                  onClick={() => handleDelete(notes.id)}
                   className="absolute top-4 right-5 cursor-pointer text-[26px] leading-none text-[#949494] hover:text-[#c18585]"
                 >
                   ×
