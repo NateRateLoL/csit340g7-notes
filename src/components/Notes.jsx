@@ -6,7 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL
 
 function Notes() {
   const [notes, setNotes] = useState([])
-
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [form, setForm] = useState(() => {
     const saved = localStorage.getItem('draft')
     return saved ? JSON.parse(saved) : { title: '', body: '' }
@@ -17,13 +18,26 @@ function Notes() {
   const titleRef = useRef(null)
 
   useEffect(() => {
+    let ignore = false
+
     async function loadNotes() {
-      const res = await fetch(API_URL + '/notes')
-      const data = await res.json()
-      setNotes(data)
+      try {
+        const res = await fetch(API_URL + '/notes')
+        if (!res.ok) {
+          throw new Error('The server answered ' + res.status)
+        }
+        const data = await res.json()
+        if (!ignore) setNotes(data)
+      } catch (err) {
+        if (!ignore) setError(err.message)
+      }
+      if (!ignore) setLoading(false)
     }
  
     loadNotes()
+    return () => {
+      ignore = true
+    }
   }, [])
 
   const filteredNotes = useMemo(() => {
@@ -121,23 +135,23 @@ function Notes() {
       </aside>
       <section className="px-12 py-11">
         <h2 className="mb-6 text-3xl">All notes</h2>
-        {filteredNotes.length > 0 ? (
-            <ul className="grid grid-cols-3 items-start gap-5">
-              {filteredNotes.map((note) => (
-                <li
-                  key={note.id}
-                  className="relative min-h-32 bg-white px-6 py-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]"
-                >
-                  <NoteCard
-                    id={note.id}
-                    title={note.title}
-                    body={note.body}
-                    onDelete={handleDelete}
-                  />
-                </li>
-              ))}
-            </ul>
-            ) : (
+        <ul className="grid grid-cols-3 items-start gap-5">
+          {filteredNotes.map((note) => (
+            <li
+              key={note.id}
+              className="relative min-h-32 bg-white px-6 py-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]"
+            >
+              <NoteCard
+                id={note.id}
+                title={note.title}
+                body={note.body}
+                onDelete={handleDelete}
+              />
+            </li>
+          ))}
+        </ul>
+ 
+        {filteredNotes.length === 0 && (
           <p className="text-lg text-[#949494]">No notes found</p>
         )}
       </section>
