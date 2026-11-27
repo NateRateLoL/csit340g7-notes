@@ -86,9 +86,24 @@ function Notes() {
       setError(err.message)
     }
   }
-  const handleDelete = useCallback((id) => {
-    setNotes(notes.filter((note) => note.id !== id))
-  }, [notes])
+
+  const handleDelete = useCallback(async (id) => {
+    try {
+      const res = await fetch(API_URL + '/notes/' + id, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        throw new Error('The server answered ' + res.status)
+      }
+
+      setNotes((prevNotes) =>
+        prevNotes.filter((note) => note.id !== id)
+      )
+    } catch (err) {
+      setError(err.message)
+    }
+  }, [])
 
 
   return (
